@@ -6,6 +6,7 @@ import {
   // HttpCode,
   // HttpStatus,
   Param,
+  // ParseIntPipe, se lo replaza por uno nuestro
   Post,
   Put,
   Query,
@@ -13,6 +14,8 @@ import {
 } from '@nestjs/common';
 // import { Response } from 'express';
 import { ProductsService } from 'src/services/products.service';
+import { ParseIntPipe } from 'src/common/parse-int/parse-int.pipe';
+import { CreateProductDto, UpdateProductDto } from 'src/dtos/products.dtos';
 
 @Controller('products')
 export class ProductsController {
@@ -24,11 +27,11 @@ export class ProductsController {
   // Parameters /:id; @Param
   @Get(':productId')
   // @HttpCode(HttpStatus.ACCEPTED)
-  getOne(@Param('productId') productId: string) {
+  getOne(@Param('productId', ParseIntPipe) productId: number) {
     // Usando el modo de Response de express para enviar un mensaje
     // $ response.status(200).send({ message: `producto optenido` });
     // Este es el metodo recomendado para enviar un mensaje si usas Nest
-    return this.productsService.findOne(+productId);
+    return this.productsService.findOne(productId);
   }
   // Uso del decorador Query para usarlo como busqueda
   @Get()
@@ -41,7 +44,7 @@ export class ProductsController {
   }
   // Usando el decorador Post y Body para recibir datos
   @Post()
-  create(@Body() body: any) {
+  create(@Body() body: CreateProductDto) {
     // return {
     //   message: 'Accion para Crear Producto',
     //   body,
@@ -50,7 +53,7 @@ export class ProductsController {
   }
   // usando el decorador Put para actualizar datos
   @Put(':id')
-  update(@Param('id') id: number, @Body() body: any) {
+  update(@Param('id') id: number, @Body() body: UpdateProductDto) {
     // return {
     //   id,
     //   body,
