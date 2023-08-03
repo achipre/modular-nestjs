@@ -20,7 +20,14 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  app.enableCors();
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders:
+      'Content-Type,Authorization,X-Requested-With,Accept-Language',
+    optionsSuccessStatus: 204,
+    credentials: true,
+  });
   await app.listen(8080);
 }
 bootstrap();
