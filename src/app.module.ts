@@ -1,25 +1,49 @@
+import * as Joi from 'joi';
+import { lastValueFrom } from 'rxjs';
 import { Module } from '@nestjs/common';
+import { HttpModule, HttpService } from '@nestjs/axios';
+// Modules
+import { ConfigModule } from '@nestjs/config';
+import { UsersModule } from './users/users.module';
+import { ProductsModule } from './products/products.module';
+import { DatabaseModule } from './database/database.module';
+// Controlllers
 import { AppController } from './app.controller';
-import { ProductsController } from './controllers/products.controller';
-import { CategoriesController } from './controllers/categories.controller';
-import { CustomersController } from './controllers/customers.controller';
-import { UsersController } from './controllers/users.controller';
-import { OrdersController } from './controllers/orders.controller';
-import { BrandsController } from './controllers/brands.controller';
+// Services
 import { AppService } from './app.service';
-import { ProductsService } from './services/products.service';
+
+import { enviroments } from './enviroments';
+import config from './config';
 
 @Module({
-  imports: [],
-  controllers: [
-    AppController,
-    ProductsController,
-    CategoriesController,
-    CustomersController,
-    UsersController,
-    OrdersController,
-    BrandsController,
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: enviroments[process.env.NODE_ENV] || '.env',
+      load: [config],
+      isGlobal: true,
+      validationSchema: Joi.object({
+        API_KEY: Joi.number().required(),
+        DATABASE_NAME: Joi.string().required(),
+        DATABASE_PORT: Joi.number().required(),
+      }),
+    }),
+    UsersModule,
+    ProductsModule,
+    HttpModule,
+    DatabaseModule,
   ],
-  providers: [AppService, ProductsService],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    {
+      provide: 'TASK',
+      useFactory: async (http: HttpService) => {
+        const request = http.get('https://jsonplaceholder.typicode.com/todos');
+        const tasks = await lastValueFrom(request);
+        return tasks.data;
+      },
+      inject: [HttpService],
+    },
+  ],
 })
 export class AppModule {}
